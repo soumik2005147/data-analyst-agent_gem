@@ -6,10 +6,10 @@ DO NOT perform any scraping or answer any analysis question. That will be done l
 
 Your output must be a single Python code that does the following:
 
-1. Parses the input task and identifies all data source URLs.
+1. Parses the input task and identifies all the relevant data source URLs.
 2. For each URL:
    a. Load the content from the data source.
-   b. Detect all structured data formats present on the page which may be applicable for the given task:
+   b. In case of unstructured source like webpage, pdf, etc... Detect all structured data formats present on the page which may be applicable for the given task:
       - Tables
       - Lists
       - JSON data embedded in JavaScript
@@ -17,6 +17,8 @@ Your output must be a single Python code that does the following:
    c. For each identified structure, extract:
       - extract the raw html content(should mention the id, classes) with max 3 entries to get the gist of the data as a string.
    d. Do not include more than 2 structures of the same type from the same page.
+   e. If the data source is already structured like csv, parquet, etc:
+      - fetch first 5 rows so as to understand the data types and values.
 
 3. Ensure proper error handling and resilience to bad or missing structures.
 
@@ -25,7 +27,7 @@ Your output must be a single Python code that does the following:
    - `"metadata"`: String representing the extracted information for the relevant structures identified.
    url and metadata both must be string only !
 
-5. Store the final output in a variable named `metadata_list`.
+5. This code block should implicitly run and store the final output in a variable named `metadata_list`.
 
 6. Do not include any comments in the code. Keep the logic straightforward.
 

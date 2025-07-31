@@ -28,18 +28,32 @@ def extract_python_code(llm_output: str, validate: bool = False) -> str:
     code = match.group(1).strip()
 
     if validate:
+        instructions = ""
+        with open("prompts/validate_code.txt", "r") as f:
+            instructions = f.read()
         messages = [
-            {"role": "system", "content": "You are a Python code fixer. Only return the fixed code inside a Python code block. Return the code as it is if no errors are found."},
-            {"role": "user", "content": f"Fix any errors, missing imports, invalid syntaxes, incomplete brackets, etc in the following Python code:\n```python\n{code}\n```"}
+            {
+                "role": "system",
+                "content": instructions
+            },
+            {
+                "role": "user",
+                "content": 
+                    "Fix any syntax errors, missing imports, runtime bugs, or issues like invalid syntax, missing colons or brackets, and undefined variables "
+                    "in the following code. Do NOT change the logic or remove any part of the code:\n\n"
+                    "```python\n"
+                    f"{code}\n"
+                    "```"
+            }
         ]
+        print("Code before validation ##########################")
+        print(code)
         validated_output = call_llm(messages)
 
-        # Extract corrected code from the returned LLM output
         corrected_match = re.search(r"```python\s+([\s\S]+?)\s+```", validated_output)
         if corrected_match:
             return corrected_match.group(1).strip()
         else:
-            # If the LLM didn't return a proper code block, fallback to original output
             return validated_output.strip()
 
     return code
