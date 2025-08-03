@@ -1,7 +1,7 @@
 from llm_client import call_llm
 from executor import execute_code
 import time
-from utils import extract_python_code, format_metadata_list
+from utils import extract_python_code, format_metadata_list, fix_code_with_llm
 
 def scraping_required(task: str) -> bool:
     instructions = ""
@@ -73,7 +73,7 @@ You are a data analysis expert. Generate Python code to solve the following data
 
 - The final code **must be executable immediately**, without requiring the user to call any function manually.
 - The code must define and populate two variables by the end:
-    - `result` - containing the final output as specified by the task.
+    - `result` - containing the final JSON output as specified by the task.
     - `error_list` - a list that collects all error messages or exceptions encountered during execution.
 - If a function is defined, ensure it is also **called** within the same script.
 - Each question or part of the solution must be inside a separate `try/except` block.
@@ -105,36 +105,46 @@ You are a data analysis expert. Generate Python code to solve the following data
 
 
 
-def run_pipeline(task: str):
+def run_pipeline(task: str, log):
     metadata_list = []
 
     if (scraping_required(task)):
-        print("\n✅ Scraping is required\n")
+        log("\n✅ Scraping is required\n")
         time.sleep(2)
 
         # Step 1: Generate and execute metadata code
         metadata_code = extract_python_code(generate_metadata_extraction_code(task), True)
-        print("\n--- Metadata Code ---\n", metadata_code)
+        log("\n--- Metadata Code ---\n"+ metadata_code)
 
         meta_env = execute_code(metadata_code)
         metadata_list = meta_env.get("metadata_list", [])
-        print("\n--- Extracted Metadata ---\n")
-        print(metadata_list)
+        log("\n--- Extracted Metadata ---\n")
+        log(metadata_list)
 
     else:
-        print("\n✅ Scraping is NOT required — proceeding directly to solution\n")
+        log("\n✅ Scraping is NOT required — proceeding directly to solution\n")
 
     # Step 2: Ask LLM to generate the final code using task + metadata (if any)
     final_code = extract_python_code(generate_solution_code(task, metadata_list), True)
-    print("\n--- Final Generated Code ---\n", final_code)
+    log("\n--- Initial Generated Code ---\n"+ final_code)
+    MAX_RETRIES = 5
+    for attempt in range(1, MAX_RETRIES + 1):
+        log(f"\n▶️ Attempt {attempt} at executing the code...\n")
 
-    # Step 3: Execute final solution code
-    final_env = execute_code(final_code)
-    result = final_env.get("result")
-    error_list = final_env.get("error_list")
-    if(error_list and len(error_list) > 0):
-        print("\n❌ Error List:\n", error_list)
+        final_env = execute_code(final_code)
+        result = final_env.get("result")
+        error_list = final_env.get("error_list")
 
-    print("\n✅ Final result:\n", result)
+        if not error_list:
+            log("\n✅ Final result:\n"+ result)
+            return result
 
-    return result
+        log("\n❌ Errors found:\n"+ str(error_list))
+        log("\n🔁 Fixing code based on above errors...\n")
+        final_code = fix_code_with_llm(final_code, error_list)
+        log("\n--- Fixed Code ---\n"+ final_code)
+
+        if(attempt == MAX_RETRIES):
+            log("\n❌ Max retries reached. returning last attempt result.\n")
+            return result
+

@@ -1,5 +1,11 @@
 import re
 from llm_client import call_llm
+import json
+import os
+import uuid
+from datetime import datetime
+from pprint import pformat
+
 
 def load_question(path="question.txt") -> str:
     with open(path, "r") as f:
@@ -76,3 +82,34 @@ def format_metadata_list(metadata_list: list) -> str:
         result += f"URL: {item.get('url', 'N/A')}\n"
         result += f"Metadata:\n{item.get('metadata', '')}\n\n"
     return result.strip()
+
+
+def fix_code_with_llm(code: str, errors: list[str]) -> str:
+    """
+    Ask the LLM to fix the code based on the provided error messages.
+    """
+    messages = [
+        {"role": "system", "content": "You are an expert Python code fixer. Your job is to correct any errors in the given Python code based on the errors shown below. Do not remove or alter correct logic unnecessarily. Fix only what is needed to resolve the errors. Return only the corrected code inside a Python code block."},
+        {"role": "user", "content": f"Here is the code:\n\n```python\n{code}\n```\n\nHere are the errors:\n{json.dumps(errors, indent=2)}\n\nReturn the fixed full code:"}
+    ]
+    return extract_python_code(call_llm(messages))
+
+
+
+def setup_logger():
+    log_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, f"{log_id}.log")
+
+    def log(msg):
+        if isinstance(msg, str):
+            formatted = msg
+        else:
+            formatted = pformat(msg)
+
+        print(formatted)
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(formatted + "\n")
+
+    return log, log_path

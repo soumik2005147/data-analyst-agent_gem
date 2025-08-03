@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pipeline import run_pipeline
+from utils import setup_logger
 
 app = FastAPI()
 
@@ -34,14 +35,21 @@ async def analyze_task(file: UploadFile = File(...)):
         contents = await file.read()
         task_description = contents.decode("utf-8").strip()
 
-        # Log or process the task description here
-        print("\nReceived Task:", task_description)
+        log, log_path = setup_logger()
 
-        answer = run_pipeline(task_description)
+
+        # Log or process the task description here
+        log("\nReceived Task:"+ task_description)
+
+        answer = run_pipeline(task_description, log)
 
         return answer
 
     except Exception as e:
+        # print the stack trace
+        import traceback
+        traceback.print_exc()
+
         return JSONResponse(
             status_code=500,
             content={"error": f"API:  error occurred: {str(e)}"}

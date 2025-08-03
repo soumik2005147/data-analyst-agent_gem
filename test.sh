@@ -1,1 +1,3 @@
-curl -X POST "http://127.0.0.1:8000/api/" -F "file=@question.txt"
+#curl -X POST "http://127.0.0.1:8000/api/" -F "file=@question.txt"
+
+curl -F "file=@question.txt" http://127.0.0.1:8000/api/
