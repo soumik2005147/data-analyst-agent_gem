@@ -13,6 +13,7 @@ if not GEMINI_API_KEY:
 genai.configure(api_key=GEMINI_API_KEY)
 #model = genai.GenerativeModel("gemini-2.5-flash-lite") # fast but poor results (good for testing)
 model = genai.GenerativeModel("gemini-2.5-flash") # very good results. but a bit slower
+#model = genai.GenerativeModel("gemini-2.5-pro")
 
 def call_llm(messages: list) -> str:
     """

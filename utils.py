@@ -115,6 +115,8 @@ def setup_logger():
     return log, log_path
 
 
+
+
 def summarize_attachments_for_llm(attachments):
     """
     Returns a string that includes both metadata and real paths so the LLM
@@ -131,3 +133,28 @@ def summarize_attachments_for_llm(attachments):
         lines.append(f"{i}. {att['filename']} — {mime} — {size} bytes — saved at {path}")
     return "\n".join(lines)
 
+
+
+def load_allowed_packages(requirements_path: str = "requirements.txt") -> list[str]:
+    """
+    Load allowed packages from a requirements.txt file, ignoring comments and empty lines.
+    
+    Args:
+        requirements_path (str): Path to the requirements.txt file. Defaults to "requirements.txt".
+    
+    Returns:
+        list[str]: List of allowed package names.
+    """
+    allowed_packages = []
+    try:
+        with open(requirements_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    # Extract only package name (ignore version constraints)
+                    pkg_name = line.split("==")[0].split(">=")[0].split("<=")[0].strip()
+                    allowed_packages.append(pkg_name)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Requirements file not found: {requirements_path}")
+    
+    return allowed_packages

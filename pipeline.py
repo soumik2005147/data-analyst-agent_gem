@@ -1,7 +1,7 @@
 from llm_client import call_llm
 from executor import execute_code
 import time
-from utils import extract_python_code, format_metadata_list, fix_code_with_llm, summarize_attachments_for_llm
+from utils import extract_python_code, format_metadata_list, fix_code_with_llm, summarize_attachments_for_llm, load_allowed_packages
 import json
 
 def scraping_required(task: str, attachment_info: str) -> bool:
@@ -36,6 +36,13 @@ def generate_metadata_extraction_code(task: str, attachment_info: str) -> str:
     with open("prompts/extract_metadata.txt", "r") as f:
         instructions = f.read()
 
+    allowed_packages = load_allowed_packages()
+    instructions += (
+        "\n\nIMPORTANT:\n"
+        "You are restricted to using libraries only from the below list of allowed packages present in the environment:\n"
+        + "\n".join(f"- {pkg}" for pkg in allowed_packages)
+    )
+
     # Combine task description with attachment details
     messages = [
         {"role": "system", "content": instructions},
@@ -51,27 +58,13 @@ def generate_metadata_extraction_code(task: str, attachment_info: str) -> str:
 
 
 
-
-def generate_dataframe_code(task: str, metadata: str = None) -> str:
-    user_prompt = f"""
-    Task:\n{task}\n
-    {'Metadata:\n' + metadata if metadata else ''}
-    
-    Generate Python code to fetch the required data into a pandas DataFrame.
-    """
-    messages = [
-        {"role": "system", "content": "You are a Python data engineer."},
-        {"role": "user", "content": user_prompt}
-    ]
-    return call_llm(messages)
-
-
-
-
 def generate_solution_code(task: str, metadata_list: list, attachment_info: str) -> str:
     """
     Use the task + optional metadata list to prompt the LLM to generate final solving code
     """
+
+    allowed_packages = load_allowed_packages()
+
     metadata_text = format_metadata_list(metadata_list) if metadata_list else "No metadata required."
 
     prompt = f"""
@@ -93,6 +86,9 @@ You are a data analysis expert. Generate Python code to solve the following data
 
 ## Instructions:
 
+- You are restricted to using **only** the following Python libraries:
+{chr(10).join(f"- {pkg}" for pkg in allowed_packages)}
+- Do NOT use any libraries that are not listed above.
 - The final code **must be executable immediately**, without requiring the user to call any function manually.
 - The code must define and populate two variables by the end:
     - `result` - containing the final JSON output as specified by the task.
@@ -124,12 +120,13 @@ You are a data analysis expert. Generate Python code to solve the following data
         {"role": "user", "content": prompt}
     ]
 
+
+
     return call_llm(messages)
 
 
 
 def run_pipeline(task: str, log, attachments):
-    metadata_list = []
 
     attachment_info = summarize_attachments_for_llm(attachments)
     log("\n--- Attachments ---\n"+ attachment_info)

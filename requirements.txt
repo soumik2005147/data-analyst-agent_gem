@@ -20,3 +20,4 @@ html5lib
 PyPDF2
 scikit-learn
 sqlalchemy
+scikit-network

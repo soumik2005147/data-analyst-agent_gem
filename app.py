@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 import traceback
 import os
 from datetime import datetime
+import json
 
 
 app = FastAPI()
@@ -90,6 +91,8 @@ def process_attachments(files: List[UploadFile]) -> List[Dict[str, Any]]:
 async def analyze_task(request: Request):
     log, log_path = setup_logger()
     try:
+        start_time = datetime.now()
+
         form = await request.form()
 
         # Extract the main question file (must be present)
@@ -118,8 +121,10 @@ async def analyze_task(request: Request):
 
         # Run pipeline
         answer = run_pipeline(task_description, log, attachments=attachments)
+        end_time = datetime.now()
+        log("total time taken to process (mins): " + str((end_time - start_time).total_seconds() / 60))
+        return JSONResponse(content=json.loads(answer))
 
-        return answer
 
     except Exception as e:
         import traceback
