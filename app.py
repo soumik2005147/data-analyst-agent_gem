@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pipeline import run_pipeline
 from utils import setup_logger
 from typing import List, Dict, Any
-import tempfile
 import traceback
 import os
 from datetime import datetime
@@ -26,7 +25,7 @@ app.add_middleware(
 # Default GET endpoint
 @app.get("/")
 async def read_root():
-    return {"message": "Hello, world!"}
+    return {"message": "Hello, world! v1"}
 
 def save_to_tempfile(upload: UploadFile) -> str:
     # Create tmp folder in app root
