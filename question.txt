@@ -1,10 +1,11 @@
-Scrape the list of highest grossing films from Wikipedia. It is at the URL:
-https://en.wikipedia.org/wiki/List_of_highest-grossing_films
+The attached file data.csv contains information about monthly sales performance of different stores.
 
-Answer the following questions and respond with a JSON array of strings containing the answer.
+Please answer the following questions and respond with a JSON object where:
+- Keys are the question numbers (1, 2, 3, …)
+- Values are the answers (numbers, strings, arrays, or base64 images if visualizations).
 
-1. How many $2 bn movies were released before 2000?
-2. Which is the earliest film that grossed over $1.5 bn?
-3. What's the correlation between the Rank and Peak?
-4. Draw a scatterplot of Rank and Peak along with a dotted red regression line through it.
-   Return as a base-64 encoded data URI, `"data:image/png;base64,iVBORw0KG..."` under 100,000 bytes.
+1. What is the store with the highest total sales?
+2. What is the average monthly sales for Store B?
+3. Draw a bar chart of total sales per store (store on x-axis, total sales on y-axis).
+   Return as a base-64 encoded PNG data URI.
+4. What is the month with the lowest sales overall across all stores?

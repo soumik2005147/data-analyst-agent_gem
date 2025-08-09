@@ -113,3 +113,21 @@ def setup_logger():
             f.write(formatted + "\n")
 
     return log, log_path
+
+
+def summarize_attachments_for_llm(attachments):
+    """
+    Returns a string that includes both metadata and real paths so the LLM
+    can load these files in generated code.
+    """
+    if not attachments:
+        return "No additional files provided."
+
+    lines = ["Available files for use in your Python code:"]
+    for i, att in enumerate(attachments, start=1):
+        size = len(att["content_bytes"])
+        mime = att["content_type"]
+        path = att["tmp_path"] or "(not saved)"
+        lines.append(f"{i}. {att['filename']} — {mime} — {size} bytes — saved at {path}")
+    return "\n".join(lines)
+

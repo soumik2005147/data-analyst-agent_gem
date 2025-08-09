@@ -1,19 +1,28 @@
 from llm_client import call_llm
 from executor import execute_code
 import time
-from utils import extract_python_code, format_metadata_list, fix_code_with_llm
+from utils import extract_python_code, format_metadata_list, fix_code_with_llm, summarize_attachments_for_llm
+import json
 
-def scraping_required(task: str) -> bool:
-    instructions = ""
+def scraping_required(task: str, attachment_info: str) -> bool:
+    # Load system instructions
     with open("prompts/scraping_required.txt", "r") as f:
         instructions = f.read()
+
+    # Include both task and available file info for LLM
+    user_prompt = f"""
+The data-analysis task is:
+{task}
+
+The user has also provided the following files:
+{attachment_info}
+"""
+
     messages = [
-        {
-            "role": "system",
-            "content": instructions
-        },
-        {"role": "user", "content": task}
+        {"role": "system", "content": instructions},
+        {"role": "user", "content": user_prompt}
     ]
+
     response = call_llm(messages)
     print("\nScraping Required:", response)
     return "yes" in response.lower()
@@ -21,13 +30,22 @@ def scraping_required(task: str) -> bool:
 
 
 
-def generate_metadata_extraction_code(task: str) -> str:
-    instructions = ""
+
+def generate_metadata_extraction_code(task: str, attachment_info: str) -> str:
+    # Load instructions from prompt file
     with open("prompts/extract_metadata.txt", "r") as f:
         instructions = f.read()
+
+    # Combine task description with attachment details
     messages = [
         {"role": "system", "content": instructions},
-        {"role": "user", "content": f"The data-analysis task is:\n{task}"}
+        {
+            "role": "user",
+            "content": (
+                f"The data-analysis task is:\n{task}\n\n"
+                f"Attached files (if any):\n{attachment_info}"
+            )
+        }
     ]
     return call_llm(messages)
 
@@ -50,7 +68,7 @@ def generate_dataframe_code(task: str, metadata: str = None) -> str:
 
 
 
-def generate_solution_code(task: str, metadata_list: list) -> str:
+def generate_solution_code(task: str, metadata_list: list, attachment_info: str) -> str:
     """
     Use the task + optional metadata list to prompt the LLM to generate final solving code
     """
@@ -65,6 +83,10 @@ You are a data analysis expert. Generate Python code to solve the following data
 ## Metadata:
 {metadata_text}
 
+##Attachments:
+{attachment_info}
+
+
 (Metadata describes potential data sources and structures. Use only the relevant parts.)
 
 ---
@@ -75,6 +97,7 @@ You are a data analysis expert. Generate Python code to solve the following data
 - The code must define and populate two variables by the end:
     - `result` - containing the final JSON output as specified by the task.
     - `error_list` - a list that collects all error messages or exceptions encountered during execution.
+- If reading from attachments, use the file paths exactly as given in Attachments.
 - If a function is defined, ensure it is also **called** within the same script.
 - Each question or part of the solution must be inside a separate `try/except` block.
     - On exception, append a message to `error_list` and continue.
@@ -105,27 +128,25 @@ You are a data analysis expert. Generate Python code to solve the following data
 
 
 
-def run_pipeline(task: str, log):
+def run_pipeline(task: str, log, attachments):
     metadata_list = []
 
-    if (scraping_required(task)):
-        log("\n✅ Scraping is required\n")
-        time.sleep(2)
+    attachment_info = summarize_attachments_for_llm(attachments)
+    log("\n--- Attachments ---\n"+ attachment_info)
 
-        # Step 1: Generate and execute metadata code
-        metadata_code = extract_python_code(generate_metadata_extraction_code(task), True)
-        log("\n--- Metadata Code ---\n"+ metadata_code)
+    
+    # Step 1: Generate and execute metadata code
+    metadata_code = extract_python_code(generate_metadata_extraction_code(task, attachment_info), True)
+    log("\n--- Metadata Code ---\n"+ metadata_code)
 
-        meta_env = execute_code(metadata_code)
-        metadata_list = meta_env.get("metadata_list", [])
-        log("\n--- Extracted Metadata ---\n")
-        log(metadata_list)
+    meta_env = execute_code(metadata_code)
+    metadata_list = meta_env.get("metadata_list", [])
+    log("\n--- Extracted Metadata ---\n")
+    log(metadata_list)
 
-    else:
-        log("\n✅ Scraping is NOT required — proceeding directly to solution\n")
-
+    
     # Step 2: Ask LLM to generate the final code using task + metadata (if any)
-    final_code = extract_python_code(generate_solution_code(task, metadata_list), True)
+    final_code = extract_python_code(generate_solution_code(task, metadata_list, attachment_info), True)
     log("\n--- Initial Generated Code ---\n"+ final_code)
     MAX_RETRIES = 5
     for attempt in range(1, MAX_RETRIES + 1):
@@ -136,6 +157,9 @@ def run_pipeline(task: str, log):
         error_list = final_env.get("error_list")
 
         if not error_list:
+            # if result not string then jsonify it
+            if not isinstance(result, str):
+                result = json.dumps(result)
             log("\n✅ Final result:\n"+ result)
             return result
 
