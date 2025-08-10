@@ -148,10 +148,13 @@ def run_pipeline(task: str, log, attachments):
     MAX_RETRIES = 5
     for attempt in range(1, MAX_RETRIES + 1):
         log(f"\n▶️ Attempt {attempt} at executing the code...\n")
-
-        final_env = execute_code(final_code)
-        result = final_env.get("result")
-        error_list = final_env.get("error_list")
+        try:        
+            final_env = execute_code(final_code)
+            result = final_env.get("result")
+            error_list = final_env.get("error_list")
+        except Exception as e:
+            log(f"\n❌ Error executing code: {e}\n")
+            error_list = [str(e)]
 
         if not error_list:
             # if result not string then jsonify it

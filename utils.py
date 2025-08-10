@@ -5,6 +5,10 @@ import os
 import uuid
 from datetime import datetime
 from pprint import pformat
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 
 def load_question(path="question.txt") -> str:
@@ -97,10 +101,13 @@ def fix_code_with_llm(code: str, errors: list[str]) -> str:
 
 
 def setup_logger():
-    log_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-    log_path = os.path.join(log_dir, f"{log_id}.log")
+    log_path = None
+    SAVE_LOGS = os.getenv("SAVE_LOGS", "false").lower() == "true"
+    if(SAVE_LOGS):
+        log_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        log_dir = "logs"
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, f"{log_id}.log")
 
     def log(msg):
         if isinstance(msg, str):
@@ -109,8 +116,9 @@ def setup_logger():
             formatted = pformat(msg)
 
         print(formatted)
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(formatted + "\n")
+        if(SAVE_LOGS):
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(formatted + "\n")
 
     return log, log_path
 

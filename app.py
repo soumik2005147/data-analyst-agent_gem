@@ -26,7 +26,7 @@ app.add_middleware(
 # Default GET endpoint
 @app.get("/")
 async def read_root():
-    return {"message": "Hello, world! v1"}
+    return {"message": "Hello, world! v1.1"}
 
 def save_to_tempfile(upload: UploadFile) -> str:
     # Create tmp folder in app root
@@ -115,7 +115,7 @@ async def analyze_task(request: Request):
         # Gather all other files as attachments
         attachments_files = [
             v for k, v in form.multi_items()
-            if hasattr(v, "filename") and v.filename != "question.txt"
+            if hasattr(v, "filename") and (v.filename != "question.txt" and v.filename != "questions.txt")
         ]
         attachments = process_attachments(attachments_files)
 
