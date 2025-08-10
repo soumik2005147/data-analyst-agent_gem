@@ -32,11 +32,11 @@ def extract_python_code(llm_output: str, validate: bool = False) -> str:
     If `validate` is True, sends the extracted code to another LLM for validation and fixes.
     """
     match = re.search(r"```python\s+([\s\S]+?)\s+```", llm_output)
-    if not match:
-        print("No python code found in the llm output:\n", llm_output)
-        raise ValueError("No Python code block found in LLM output.")
-
-    code = match.group(1).strip()
+    if match:
+        code = match.group(1).strip()    
+    else:
+        print("⚠️ No fenced Python block found — treating entire output as Python code.")
+        code = llm_output.strip()
 
     if validate:
         instructions = ""
