@@ -1,11 +1,6 @@
-The attached file data.csv contains information about monthly sales performance of different stores.
-
-Please answer the following questions and respond with a JSON object where:
-- Keys are the question numbers (1, 2, 3, …)
-- Values are the answers (numbers, strings, arrays, or base64 images if visualizations).
-
-1. What is the store with the highest total sales?
-2. What is the average monthly sales for Store B?
-3. Draw a bar chart of total sales per store (store on x-axis, total sales on y-axis).
-   Return as a base-64 encoded PNG data URI.
-4. What is the month with the lowest sales overall across all stores?
+Analyze the sales data from data.json.  
+1. Calculate total revenue from all orders.  
+2. Find the customer with the highest total spending.  
+3. Count the number of unique countries represented in the dataset.  
+4. Create a bar chart showing total spending per customer.  
+Return the results in JSON format and save the chart as 'spending_chart.png'.

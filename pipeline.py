@@ -93,6 +93,7 @@ You are a data analysis expert. Generate Python code to solve the following data
 - The code must define and populate two variables by the end:
     - `result` - containing the final JSON output as specified by the task.
     - `error_list` - a list that collects all error messages or exceptions encountered during execution.
+- When building `result`, ensure all NumPy and Pandas datatypes (e.g., np.int64, np.float64, pd.Timestamp) are converted to native Python types (`int`, `float`, `str`, etc.) before passing to `json.dumps`.
 - If reading from attachments, use the file paths exactly as given in Attachments.
 - If a function is defined, ensure it is also **called** within the same script.
 - Each question or part of the solution must be inside a separate `try/except` block.
@@ -135,9 +136,13 @@ def run_pipeline(task: str, log, attachments):
     # Step 1: Generate and execute metadata code
     metadata_code = extract_python_code(generate_metadata_extraction_code(task, attachment_info), True)
     log("\n--- Metadata Code ---\n"+ metadata_code)
-
-    meta_env = execute_code(metadata_code)
-    metadata_list = meta_env.get("metadata_list", [])
+    try:
+        meta_env = execute_code(metadata_code)
+        metadata_list = meta_env.get("metadata_list", [])
+    except Exception as e:
+        log(f"\n❌ Error extracting metadata: {e}\n")
+        metadata_list = []
+        
     log("\n--- Extracted Metadata ---\n")
     log(metadata_list)
 
