@@ -1,6 +1,5 @@
 from llm_client import call_llm
 from executor import execute_code
-import time
 from utils import extract_python_code, format_metadata_list, fix_code_with_llm, summarize_attachments_for_llm, load_allowed_packages
 import json
 
@@ -150,9 +149,9 @@ def run_pipeline(task: str, log, attachments):
     # Step 2: Ask LLM to generate the final code using task + metadata (if any)
     final_code = extract_python_code(generate_solution_code(task, metadata_list, attachment_info), True)
     log("\n--- Initial Generated Code ---\n"+ final_code)
-    MAX_RETRIES = 5
+    MAX_RETRIES = 7
     result = json.dumps({}) # empty result json
-    
+
     for attempt in range(1, MAX_RETRIES + 1):
         log(f"\n▶️ Attempt {attempt} at executing the code...\n")
         try:        

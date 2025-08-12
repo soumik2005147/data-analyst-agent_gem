@@ -26,7 +26,7 @@ app.add_middleware(
 # Default GET endpoint
 @app.get("/")
 async def read_root():
-    return {"message": "Hello, world! v1.1"}
+    return {"message": "Hello, world! v1.2"}
 
 def save_to_tempfile(upload: UploadFile) -> str:
     # Create tmp folder in app root
