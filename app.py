@@ -123,6 +123,9 @@ async def analyze_task(request: Request):
         answer = run_pipeline(task_description, log, attachments=attachments)
         end_time = datetime.now()
         log("total time taken to process (mins): " + str((end_time - start_time).total_seconds() / 60))
+        if not isinstance(answer, str):
+            answer = json.dumps(answer)
+
         return JSONResponse(content=json.loads(answer))
 
 

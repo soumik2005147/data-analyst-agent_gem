@@ -151,20 +151,21 @@ def run_pipeline(task: str, log, attachments):
     final_code = extract_python_code(generate_solution_code(task, metadata_list, attachment_info), True)
     log("\n--- Initial Generated Code ---\n"+ final_code)
     MAX_RETRIES = 5
+    result = json.dumps({}) # empty result json
+    
     for attempt in range(1, MAX_RETRIES + 1):
         log(f"\n▶️ Attempt {attempt} at executing the code...\n")
         try:        
             final_env = execute_code(final_code)
-            result = final_env.get("result")
+            result = final_env.get("result", result)
+            if not isinstance(result, str):
+                result = json.dumps(result)
             error_list = final_env.get("error_list")
         except Exception as e:
             log(f"\n❌ Error executing code: {e}\n")
             error_list = [str(e)]
 
         if not error_list:
-            # if result not string then jsonify it
-            if not isinstance(result, str):
-                result = json.dumps(result)
             log("\n✅ Final result:\n"+ result)
             return result
 

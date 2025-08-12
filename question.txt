@@ -1,6 +1,0 @@
-Analyze the sales data from data.json.  
-1. Calculate total revenue from all orders.  
-2. Find the customer with the highest total spending.  
-3. Count the number of unique countries represented in the dataset.  
-4. Create a bar chart showing total spending per customer.  
-Return the results in JSON format and save the chart as 'spending_chart.png'.
