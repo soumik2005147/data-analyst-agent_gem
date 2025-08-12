@@ -62,34 +62,35 @@ This project automates data analysis code generation using a Large Language Mode
 
 
 # Install dependencies
+```
 pip install -r requirements.txt
-
+```
 
 ⚙️ Environment Variables
 
 Create a .env file in the root folder:
-
+```
 GEMINI_API_KEY=your_gemini_api_key_here
 
 SAVE_LOGS=true
-
+```
 
 
 ▶️ Running the FastAPI Server
 
 Run the server with:
-
+```
 uvicorn main:app --reload
-
+```
 📡 Making a Request
 
 You can send your data analysis request with questions.txt and optional attachments using curl:
-
+```
 curl "https://app.example.com/api/" \
   -F "questions.txt=@question.txt" \
   -F "image.png=@image.png" \
   -F "data.csv=@data.csv"
-
+```
 Notes:
 
     questions.txt → Required, contains the data analysis task.
@@ -99,7 +100,7 @@ Notes:
 📝 Example
 
 questions.txt:
-
+```
 Scrape the list of highest grossing films from Wikipedia. It is at the URL:
 https://en.wikipedia.org/wiki/List_of_highest-grossing_films
 
@@ -110,9 +111,9 @@ Answer the following questions and respond with a JSON array of strings containi
 3. What's the correlation between the Rank and Peak?
 4. Draw a scatterplot of Rank and Peak along with a dotted red regression line through it.
    Return as a base-64 encoded data URI, `"data:image/png;base64,iVBORw0KG..."` under 100,000 bytes.
-
+```
 Sample Response:
-
+```
 [
   1,
   "Titanic",
@@ -120,3 +121,4 @@ Sample Response:
   "data:image/png;base64,iVBORw0KG... (response truncated)"
 ]
 
+```
