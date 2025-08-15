@@ -1,8 +1,25 @@
+# Python
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.build/
 
-__pycache__/
+# Environments
+.venv/
+venv/
+env/
+ENV/
 
+# Editor/OS
+.vscode/
+.DS_Store
+
+# App secrets & temp
 .env
-
-logs/
-
+.env.*
+uploaded_files/
 tmp/
+logs/
