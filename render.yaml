@@ -1,0 +1,11 @@
+# Render Blueprint Spec
+services:
+  - type: web
+    name: data-analyst-agent-gem
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    autoDeploy: true
+    envVars:
+      - key: ENV
+        value: production
